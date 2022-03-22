@@ -79,7 +79,7 @@ void setup() {
     pinMode(A2, INPUT);
     pinMode(A3, INPUT);
     
-    delay(1000);
+    delay(2000);
 
     // --- DAC begin ---
     dac.begin();

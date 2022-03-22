@@ -1,2 +1,2 @@
 # SIPM_Ardu
-Iskra Pro
+Iskra Pro Nano

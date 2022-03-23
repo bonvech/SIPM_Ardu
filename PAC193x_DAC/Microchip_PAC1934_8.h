@@ -464,78 +464,31 @@ class Microchip_PAC193x {
         int16_t UpdateRevisionID();
 
 
-    //class public properties:
-    uint16_t VoltageRaw1; //vbus
-    float Voltage1;
-    uint16_t VoltageRaw2; //vbus
-    float Voltage2;
-    uint16_t VoltageRaw3; //vbus
-    float Voltage3;
-    uint16_t VoltageRaw4; //vbus
-    float Voltage4;
-    uint16_t VsenseRaw; //vsense
+    // --- class public properties:
+    uint16_t VoltageRaw[4]; //vbus
+    float    Voltage[4];
+    
+    uint16_t VsenseRaw[4]; //vsense
+    float    Vsense[4];
 
-    uint16_t VsenseRaw1; //vsense
-    uint16_t VsenseRaw2; //vsense
-    uint16_t VsenseRaw3; //vsense
-    uint16_t VsenseRaw4; //vsense
+    float    Current[4];  //isense
 
-    float Vsense;
-    float Vsense1;
-    float Vsense2;
-    float Vsense3;
-    float Vsense4;
-
-    float Current; //isense
-    float Current1; //isense
-    float Current2; //isense
-    float Current3; //isense
-    float Current4; //isense
-
-    uint32_t PowerRaw;
-    uint32_t PowerRaw1;
-    uint32_t PowerRaw2;
-    uint32_t PowerRaw3;
-    uint32_t PowerRaw4;
-
-    double Power;
-    double Power1;
-    double Power2;
-    double Power3;
-    double Power4;
-
-    uint64_t PowerAccRaw;
-    uint64_t PowerAccRaw1;
-    uint64_t PowerAccRaw2;
-    uint64_t PowerAccRaw3;
-    uint64_t PowerAccRaw4;
-
-    double PowerAcc;
-    double PowerAcc1;
-    double PowerAcc2;
-    double PowerAcc3;
-    double PowerAcc4;
-
-    float Energy;
-    float Energy1;
-    float Energy2;
-    float Energy3;
-    float Energy4;
-
-
-    uint8_t OverflowAlert;
-    uint8_t OverflowAlert1;
-    uint8_t OverflowAlert2;
-    uint8_t OverflowAlert3;
-    uint8_t OverflowAlert4;
-
-    uint8_t SlowStatus;
-    uint8_t PowerOnStatus;
+    uint32_t PowerRaw[4];
+    double   Power[4];
+    
+    uint64_t PowerAccRaw[4];
+    double   PowerAcc[4];
+    
+    float    Energy[4];
+    
+    uint8_t  OverflowAlert;
+    uint8_t  SlowStatus;
+    uint8_t  PowerOnStatus;
     uint16_t SampleRateLat;
-    uint8_t ProductID;
-    uint8_t ManufacturerID;
-    uint8_t RevisionID;
-    int I2C_ADDRESS;
+    uint8_t  ProductID;
+    uint8_t  ManufacturerID;
+    uint8_t  RevisionID;
+    int      I2C_ADDRESS;
 
 
   private:

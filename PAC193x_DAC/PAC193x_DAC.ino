@@ -34,52 +34,55 @@ void loop()
 {
     Serial.print("\n\nRead start:");
 
-
     PAC.UpdateVoltage();    
-    //Serial.print("\n Voltage    (mV) = ");
     //Serial.print(PAC.Voltage);
-    Serial.print("\n Voltage1    (mV) = ");
-    Serial.print(PAC.Voltage1);
-    Serial.print("\n Voltage2    (mV) = ");
-    Serial.print(PAC.Voltage2);
-    Serial.print("\n Voltage3    (mV) = ");
-    Serial.print(PAC.Voltage3);
-    Serial.print("\n Voltage4    (mV) = ");
-    Serial.print(PAC.Voltage4);
-
+    Serial.print("\n Voltage     (mV) = ");
+    for(int i=0; i < 4; i++)
+    {
+        Serial.print(PAC.Voltage[i]);   Serial.print("\t");
+    } 
       
     PAC.UpdateVsense();
-    Serial.print("\n Vsense1     (mV) = ");
-    Serial.print(PAC.Vsense1,6);
-    Serial.print("\n Vsense2     (mV) = ");
-    Serial.print(PAC.Vsense2,6);
-    Serial.print("\n Vsense3     (mV) = ");
-    Serial.print(PAC.Vsense3,6);
-    Serial.print("\n Vsense4     (mV) = ");
-    Serial.print(PAC.Vsense4,6);
+    Serial.print("\n Vsense      (mV) = ");
+    for(int i = 0; i < 4; i++)
+    {
+        Serial.print(PAC.Vsense[i], 6);  Serial.print("\t");
+    }
     
     PAC.UpdateCurrent();
     Serial.print("\n Current     (mA) = ");
-    Serial.print(PAC.Current,  5); Serial.print("\t");
-    Serial.print(PAC.Current1, 5); Serial.print("\t");
-    Serial.print(PAC.Current2, 5); Serial.print("\t");
-    Serial.print(PAC.Current3, 5); Serial.print("\t");
-    Serial.print(PAC.Current4, 5);
-
+    for(int i = 0; i < 4; i++)
+    {
+        Serial.print(PAC.Current[i],  6);   Serial.print("\t");
+    }
     
-  //  Serial.print("\n Raw Power (HEX) = ");
-  //    PAC.UpdatePowerRaw();
-  //    Serial.print(PAC.PowerRaw, HEX);
-  //    Serial.print("\n Power      (mW) = ");
-  //    PAC.UpdatePower();
-  //    Serial.print(PAC.Power,6);
-  //    Serial.print("\n Power Acc  (mW) = ");
-  //    PAC.UpdatePowerAcc() ;
-  //    Serial.print(PAC.PowerAcc,6);
-  //    Serial.print("\n Energy    (mWh) = ");
-  //    PAC.UpdateEnergy();
-  //    Serial.print(PAC.Energy,6);
-  //
-  delay(2000);
+    PAC.UpdatePowerRaw();
+    Serial.print("\n Raw Power (HEX) = ");
+    for(int i = 0; i < 4; i++)
+    {
+        Serial.print(PAC.PowerRaw[i], HEX);  Serial.print("\t");
+    }
+  
+    Serial.print("\n Power      (mW) = ");
+    PAC.UpdatePower();
+    for(int i = 0; i < 4; i++)
+    {
+        Serial.print(PAC.Power[i], 6);     Serial.print("\t");
+    }
+    
+    Serial.print("\n Power Acc  (mW) = ");
+    PAC.UpdatePowerAcc() ;
+    for(int i = 0; i < 4; i++)
+    {
+        Serial.print(PAC.PowerAcc[i], 6);  Serial.print("\t");
+    }
 
+    Serial.print("\n Energy    (mWh) = ");
+    PAC.UpdateEnergy();
+    for(int i = 0; i < 4; i++)
+    {    
+        Serial.print(PAC.Energy[i], 6);  Serial.print("\t");
+    }
+  
+    delay(3000);
 }

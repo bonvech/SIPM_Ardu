@@ -105,7 +105,8 @@ void Microchip_PAC193x::Read(uint8_t reg_address, int Nbytes, uint8_t *pBuffer)
 }
 
 
-uint8_t Microchip_PAC193x::Read8(uint8_t reg_address) {
+uint8_t Microchip_PAC193x::Read8(uint8_t reg_address) 
+{
     uint8_t buffer[1];
     uint8_t *ptemp;
 
@@ -116,7 +117,8 @@ uint8_t Microchip_PAC193x::Read8(uint8_t reg_address) {
 }
 
 
-uint16_t Microchip_PAC193x::Read16(uint8_t reg_address) {
+uint16_t Microchip_PAC193x::Read16(uint8_t reg_address) 
+{
     uint8_t buffer[2];
     uint16_t *ptemp;
 
@@ -126,7 +128,8 @@ uint16_t Microchip_PAC193x::Read16(uint8_t reg_address) {
     return *ptemp;
 }
 
-uint32_t Microchip_PAC193x::Read32(uint8_t reg_address) {
+uint32_t Microchip_PAC193x::Read32(uint8_t reg_address) 
+{
     uint8_t buffer[4];
     uint32_t *ptemp;
 
@@ -137,7 +140,8 @@ uint32_t Microchip_PAC193x::Read32(uint8_t reg_address) {
 }
 
 
-uint64_t Microchip_PAC193x::Read64(uint8_t reg_address) {
+uint64_t Microchip_PAC193x::Read64(uint8_t reg_address) 
+{
     uint8_t buffer[8];
     uint64_t *ptemp;
 
@@ -147,7 +151,8 @@ uint64_t Microchip_PAC193x::Read64(uint8_t reg_address) {
     return *ptemp;
 }
 
-void Microchip_PAC193x::Write8(uint8_t reg_address, uint8_t data) {
+void Microchip_PAC193x::Write8(uint8_t reg_address, uint8_t data) 
+{
     Wire.beginTransmission(I2C_ADDRESS); // start transmission to device 
 #if (ARDUINO >= 100)
     Wire.write(reg_address); // sends register address to read from
@@ -162,59 +167,50 @@ void Microchip_PAC193x::Write8(uint8_t reg_address, uint8_t data) {
     }
 }
 
-int16_t Microchip_PAC193x::UpdateProductID(){
-    
+int16_t Microchip_PAC193x::UpdateProductID()
+{    
     errorCode = 0;
     ProductID = Read8(PAC1934_PRODUCT_ID_ADDR); 
     
     return errorCode;
 }
 
-int16_t Microchip_PAC193x::UpdateManufacturerID(){
-    
+int16_t Microchip_PAC193x::UpdateManufacturerID()
+{    
     errorCode = 0;
     ManufacturerID = Read8(PAC1934_MANUFACTURER_ID_ADDR); 
     
     return errorCode;
 }
 
-int16_t Microchip_PAC193x::UpdateRevisionID(){
-    
+int16_t Microchip_PAC193x::UpdateRevisionID()
+{    
     errorCode = 0;
     RevisionID = Read8(PAC1934_REVISION_ID_ADDR); 
     
     return errorCode;
 }
 
-void Microchip_PAC193x::Refresh(){
-
+void Microchip_PAC193x::Refresh()
+{
     Write8(PAC1934_REFRESH_CMD_ADDR, 1); //refresh
 }
 
 
-int16_t Microchip_PAC193x::UpdateVoltageRaw(){
-    uint16_t VbusRaw1;
-    uint16_t VbusRaw2;
-    uint16_t VbusRaw3;
-    uint16_t VbusRaw4;
-
+int16_t Microchip_PAC193x::UpdateVoltageRaw()
+{
+    uint16_t VbusRaw;
+    
     errorCode = 0;
     Write8(PAC1934_REFRESH_V_CMD_ADDR, 1); //refreshV
     delay(2);
-    VbusRaw1 = Read16(PAC1934_VBUS1_ADDR);
-    VbusRaw2 = Read16(PAC1934_VBUS2_ADDR);
-    VbusRaw3 = Read16(PAC1934_VBUS3_ADDR);
-    VbusRaw4 = Read16(PAC1934_VBUS4_ADDR);
 
-    VbusRaw1 = (VbusRaw1 << 8) | (VbusRaw1 >> 8);
-    VbusRaw2 = (VbusRaw2 << 8) | (VbusRaw2 >> 8);
-    VbusRaw3 = (VbusRaw3 << 8) | (VbusRaw3 >> 8);
-    VbusRaw4 = (VbusRaw4 << 8) | (VbusRaw4 >> 8);
-
-    VoltageRaw1 = VbusRaw1;
-    VoltageRaw2 = VbusRaw2;
-    VoltageRaw3 = VbusRaw3;
-    VoltageRaw4 = VbusRaw4;
+    for(int i = 0; i < 4; i++)
+    {
+        VbusRaw = Read16(PAC1934_VBUS1_ADDR + i);         
+        VbusRaw = (VbusRaw << 8) | (VbusRaw >> 8);
+        VoltageRaw[i] = VbusRaw;
+    }
 
     return errorCode;
 }
@@ -228,77 +224,60 @@ int16_t Microchip_PAC193x::UpdateVoltage()
     errorCode = 0;
     UpdateVoltageRaw();
     VbusLsb = 32000 / 65536.0;
-    VbusReal = (float)VoltageRaw1;
-    VbusReal = VbusReal * VbusLsb;
-    Voltage1 = VbusReal;
 
-    VbusReal = (float)VoltageRaw2;
-    VbusReal = VbusReal * VbusLsb;
-    Voltage2 = VbusReal;
-
-    VbusReal = (float)VoltageRaw3;
-    VbusReal = VbusReal * VbusLsb;
-    Voltage3 = VbusReal;
-
-    VbusReal = (float)VoltageRaw4;
-    VbusReal = VbusReal * VbusLsb;
-    Voltage4 = VbusReal;
+    for(int i=0; i < 4; i++)
+    {
+        VbusReal = (float)VoltageRaw[i] * VbusLsb;
+        Voltage[i] = VbusReal;
+    }
 
     return errorCode;
 }
 
 
-int16_t Microchip_PAC193x::UpdateVsenseRaw(){
-
+int16_t Microchip_PAC193x::UpdateVsenseRaw()
+{
+    uint16_t VsRaw = 0;
     errorCode = 0;
     Write8(PAC1934_REFRESH_V_CMD_ADDR, 1); //refreshV
     delay(2);
-    VsenseRaw = Read16(PAC1934_VSENSE1_ADDR);
-    VsenseRaw = (VsenseRaw << 8) | (VsenseRaw >> 8 );
 
-    VsenseRaw1 = Read16(PAC1934_VSENSE1_ADDR);
-    VsenseRaw1 = (VsenseRaw1 << 8) | (VsenseRaw1 >> 8);
-    VsenseRaw2 = Read16(PAC1934_VSENSE2_ADDR);
-    VsenseRaw2 = (VsenseRaw2 << 8) | (VsenseRaw2 >> 8);
-    VsenseRaw3 = Read16(PAC1934_VSENSE3_ADDR);
-    VsenseRaw3 = (VsenseRaw3 << 8) | (VsenseRaw3 >> 8);
-    VsenseRaw4 = Read16(PAC1934_VSENSE4_ADDR);
-    VsenseRaw4 = (VsenseRaw4 << 8) | (VsenseRaw4 >> 8);
-
+    for(int i = 0; i < 4; i++)
+    {
+        VsRaw = Read16(PAC1934_VSENSE1_ADDR + i);
+        VsenseRaw[i] = (VsRaw << 8) | (VsRaw >> 8);
+    }
+    
     return errorCode;
 }
 
 
 int16_t Microchip_PAC193x::UpdateVsense()
 {
-    uint16_t registerAddr;
-    float VsenseLsb;
+    float VsenseLsb = 100. / 65536.0;
 
     errorCode = 0;
     UpdateVsenseRaw();
-    VsenseLsb = 100 / 65536.0;
 
-    Vsense = (float)VsenseRaw;
-    Vsense = Vsense * VsenseLsb;
-
-    Vsense1 = (float)VsenseRaw1;
-    Vsense1 = Vsense1 * VsenseLsb;
-    Vsense2 = (float)VsenseRaw2;
-    Vsense2 = Vsense2 * VsenseLsb;
-    Vsense3 = (float)VsenseRaw3;
-    Vsense3 = Vsense3 * VsenseLsb;
-    Vsense4 = (float)VsenseRaw4;
-    Vsense4 = Vsense4 * VsenseLsb;
+    for(int i = 0; i < 4; i++)
+    {
+        Vsense[i] = (float)VsenseRaw[i] * VsenseLsb;
+    }
 
     return errorCode;
 }
 
-int16_t Microchip_PAC193x::UpdateCurrent(){
 
-    errorCode = 0;
+int16_t Microchip_PAC193x::UpdateCurrent()
+{
+    errorCode = 0; 
     UpdateVsense();
-    Current = (Vsense / rsense) * 1000000; //mA
 
+    for(int i = 0; i < 4; i++)
+    {
+        Current[i] = (Vsense[i] / rsense) * 1000000; //mA
+    }
+    
     if (rsense <= 0){
         errorCode = (-3);
     }
@@ -309,28 +288,35 @@ int16_t Microchip_PAC193x::UpdateCurrent(){
 
 int16_t Microchip_PAC193x::UpdatePowerRaw()
 {
-
+    uint32_t PowerRawtmp;
     errorCode = 0;
+    
     Write8(PAC1934_REFRESH_V_CMD_ADDR, 1); //refreshV
     delay(2);
-    PowerRaw = Read32(PAC1934_VPOWER1_ADDR);
-    PowerRaw = ((PowerRaw << 8) & 0xFF00FF00 ) | ((PowerRaw >> 8) & 0xFF00FF ); 
-    PowerRaw = (PowerRaw << 16) | (PowerRaw >> 16);
 
+    for(int i = 0; i < 4; i++)
+    {    
+        PowerRawtmp = Read32(PAC1934_VPOWER1_ADDR + i);
+        PowerRawtmp = ((PowerRawtmp << 8) & 0xFF00FF00) | ((PowerRawtmp >> 8) & 0xFF00FF); 
+        PowerRaw[i] = (PowerRawtmp << 16) | (PowerRawtmp >> 16);
+    }
+    
     return errorCode;
 }
 
 
-int16_t Microchip_PAC193x::UpdatePower(){
+int16_t Microchip_PAC193x::UpdatePower()
+{
     uint32_t PowerRegScale = 0x10000000;
-    double PowerFSR;
-
+    double   PowerFSR = (3.2 * 1000000) / rsense; 
     errorCode = 0;
+    
     UpdatePowerRaw();
-    Power = (double)PowerRaw / 16;
-    PowerFSR = (3.2 * 1000000) / rsense; 
-    Power = (Power * PowerFSR);
-    Power = Power / PowerRegScale;
+
+    for(int i = 0; i < 4; i++)
+    {    
+        Power[i] = (((double)PowerRaw[i] / 16.) * PowerFSR) / PowerRegScale;
+    }
 
     if (rsense <= 0){
         errorCode = (-3);
@@ -342,39 +328,47 @@ int16_t Microchip_PAC193x::UpdatePower(){
 
 int16_t Microchip_PAC193x::UpdatePowerAccRaw()
 {
+    uint64_t tmp = 0;
     errorCode = 0;
+    
     Write8(PAC1934_REFRESH_V_CMD_ADDR, 1); //refreshV
     delay(2);
-    PowerAccRaw = Read64(PAC1934_VPOWER1_ACC_ADDR);
-    PowerAccRaw = ((PowerAccRaw <<  8) & 0xFF00FF00FF00FF00ULL ) | ((PowerAccRaw >> 8) & 0x00FF00FF00FF00FFULL );
-    PowerAccRaw = ((PowerAccRaw << 16) & 0xFFFF0000FFFF0000ULL ) | ((PowerAccRaw >> 16) & 0x0000FFFF0000FFFFULL );
-    PowerAccRaw = ( PowerAccRaw << 32) | (PowerAccRaw >> 32); 
+
+    for(int i = 0; i < 4; i++)
+    {    
+        tmp = Read64(PAC1934_VPOWER1_ACC_ADDR + i);
+        tmp = ((tmp <<  8) & 0xFF00FF00FF00FF00ULL ) | ((tmp >> 8) & 0x00FF00FF00FF00FFULL );
+        tmp = ((tmp << 16) & 0xFFFF0000FFFF0000ULL ) | ((tmp >> 16) & 0x0000FFFF0000FFFFULL );
+        tmp = ( tmp << 32) | (tmp >> 32); 
+        PowerAccRaw[i] = tmp;
+    }
 
     return errorCode;
 }
 
 
 int16_t Microchip_PAC193x::UpdatePowerAcc(){
-    double PowerFSR;
     uint32_t PowerRegScale = 0x10000000;
+    double   PowerFSR = (3.2 * 1000000) / rsense;
 
     errorCode = 0;
     UpdatePowerAccRaw();
-    PowerAcc = (double)PowerAccRaw;
-    PowerFSR = (3.2 * 1000000) / rsense;
-    PowerAcc = PowerAcc * PowerFSR;
-    PowerAcc = PowerAcc / PowerRegScale;
-
-    if (rsense <= 0){
-        errorCode = (-3);
+    
+    for(int i = 0; i < 4; i++)
+    {    
+        PowerAcc[i] = (double)PowerAccRaw[i] * PowerFSR / PowerRegScale;
     }
+
+    if (rsense <= 0)
+        errorCode = (-3);
 
     return errorCode;
 }
 
-int16_t Microchip_PAC193x::UpdateSampleRateLat(){
+int16_t Microchip_PAC193x::UpdateSampleRateLat()
+{
     uint16_t sampleRateVal;
-    uint8_t sampleRateBits;
+    uint8_t  sampleRateBits;
 
     errorCode = 0;
     sampleRateBits = Read8(PAC1934_CTRL_LAT_ADDR);
@@ -400,7 +394,8 @@ int16_t Microchip_PAC193x::UpdateSampleRateLat(){
 }
 
 
-int16_t Microchip_PAC193x::setSampleRate(uint16_t value){
+int16_t Microchip_PAC193x::setSampleRate(uint16_t value)
+{
     uint8_t temp_read, temp_write;
 
     errorCode = 0;
@@ -433,17 +428,24 @@ int16_t Microchip_PAC193x::setSampleRate(uint16_t value){
     return errorCode;
 }
 
-int16_t Microchip_PAC193x::UpdateEnergy(){
 
+int16_t Microchip_PAC193x::UpdateEnergy()
+{
     errorCode = 0;
     UpdatePowerAcc();
     UpdateSampleRateLat();
-    Energy = (PowerAcc / SampleRateLat) / 3.6;
+
+    for(int i = 0; i < 4; i++)
+    {    
+        Energy[i] = (PowerAcc[i] / SampleRateLat) / 3.6;
+    }
 
     return errorCode;
 }
 
-int16_t Microchip_PAC193x::UpdateOverflowAlert(){
+
+int16_t Microchip_PAC193x::UpdateOverflowAlert()
+{
     uint8_t temp_read;
     
     errorCode = 0;

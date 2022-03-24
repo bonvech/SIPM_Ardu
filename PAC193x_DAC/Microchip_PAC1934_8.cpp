@@ -50,13 +50,18 @@ Microchip_PAC193x::Microchip_PAC193x(uint8_t Addr, uint32_t resistorValue=RSENSE
     errorCode = 0;
 }
 
-
 /*Microchip_PAC193x::Microchip_PAC193x(uint32_t resistorValue) 
 {
     rsense = resistorValue;
     errorCode = 0;
 }
 */
+
+void Microchip_PAC193x::SetAddress(uint8_t Addr)
+{
+    I2C_ADDRESS = Addr;
+}
+
 
 void Microchip_PAC193x::begin()
 {
@@ -79,6 +84,7 @@ void Microchip_PAC193x::Read(uint8_t reg_address, int Nbytes, uint8_t *pBuffer)
 #else
     Wire.send(reg_address); 
 #endif
+
     errorCode = Wire.endTransmission(false); 
     if (errorCode != 0)
     {
@@ -87,6 +93,7 @@ void Microchip_PAC193x::Read(uint8_t reg_address, int Nbytes, uint8_t *pBuffer)
 
     Wire.beginTransmission(I2C_ADDRESS); 
     Wire.requestFrom(I2C_ADDRESS, Nbytes); 
+    
 #if (ARDUINO >= 100)
     while(Wire.available() && (byteCount > 0))    // slave may send less than requested
     {
@@ -128,6 +135,28 @@ uint16_t Microchip_PAC193x::Read16(uint8_t reg_address)
     return *ptemp;
 }
 
+uint32_t Microchip_PAC193x::Read24(uint8_t reg_address) 
+{
+    uint8_t buffer[4];
+    uint8_t tmp;
+    uint32_t *ptemp;
+
+    ptemp = (uint32_t *)&buffer[0];
+    Read(reg_address, 3, buffer);
+
+    // reverse bytes in read buffer:
+/*    tmp = buffer[3];
+    buffer[3] = buffer[0];
+    buffer[0] = tmp;
+    tmp = buffer[2];
+    buffer[2] = buffer[1];
+    buffer[1] = tmp;
+  */  
+    
+    return *ptemp;
+}
+
+
 uint32_t Microchip_PAC193x::Read32(uint8_t reg_address) 
 {
     uint8_t buffer[4];
@@ -156,10 +185,10 @@ void Microchip_PAC193x::Write8(uint8_t reg_address, uint8_t data)
     Wire.beginTransmission(I2C_ADDRESS); // start transmission to device 
 #if (ARDUINO >= 100)
     Wire.write(reg_address); // sends register address to read from
-    Wire.write(data);  // write data
+    Wire.write(data);        // write data
 #else
-    Wire.send(reg_address); // sends register address to read from
-    Wire.send(data);  // write data
+    Wire.send(reg_address);  // sends register address to read from
+    Wire.send(data);         // write data
 #endif
     errorCode = Wire.endTransmission();  // end transmission
     if (errorCode != 0){
@@ -194,6 +223,13 @@ int16_t Microchip_PAC193x::UpdateRevisionID()
 void Microchip_PAC193x::Refresh()
 {
     Write8(PAC1934_REFRESH_CMD_ADDR, 1); //refresh
+    delay(20);
+}
+
+void Microchip_PAC193x::RefreshG()
+{
+    Write8(PAC1934_REFRESH_G_CMD_ADDR, 0); //refreshG
+    delay(20);
 }
 
 
@@ -218,17 +254,22 @@ int16_t Microchip_PAC193x::UpdateVoltageRaw()
 
 int16_t Microchip_PAC193x::UpdateVoltage()
 {
-    float VbusReal;
+    //float VbusReal;
     float VbusLsb;
 
     errorCode = 0;
     UpdateVoltageRaw();
     VbusLsb = 32000 / 65536.0;
 
-    for(int i=0; i < 4; i++)
+    for(int i = 0; i < 4; i++)
     {
-        VbusReal = (float)VoltageRaw[i] * VbusLsb;
-        Voltage[i] = VbusReal;
+        //VbusReal = (float)VoltageRaw[i] * VbusLsb;
+        Voltage[i] = (float)VoltageRaw[i] * VbusLsb;
+        // -U power of SiPM 
+        if((I2C_ADDRESS == 0x11) && (i == 3))
+        {
+           Voltage[i] = (Voltage[i] - 2500) * 12.048; 
+        }
     }
 
     return errorCode;
@@ -334,6 +375,14 @@ int16_t Microchip_PAC193x::UpdatePowerAccRaw()
     Write8(PAC1934_REFRESH_V_CMD_ADDR, 1); //refreshV
     delay(2);
 
+    tmp = Read24(PAC1934_ACC_COUNT_ADDR);
+    //PowerRawtmp = ((PowerRawtmp << 8) & 0xFF00FF00) | ((PowerRawtmp >> 8) & 0xFF00FF); 
+    //PowerRaw[i] = (PowerRawtmp << 16) | (PowerRawtmp >> 16);
+
+    //tmp = ((tmp <<  8) & 0xFF00FF00FF00FF00ULL ) | ((tmp >> 8) & 0x00FF00FF00FF00FFULL );
+    //tmp = ((tmp << 16) & 0xFFFF0000FFFF0000ULL ) | ((tmp >> 16) & 0x0000FFFF0000FFFFULL );
+    PowerAccAllRaw = tmp;
+      
     for(int i = 0; i < 4; i++)
     {    
         tmp = Read64(PAC1934_VPOWER1_ACC_ADDR + i);
@@ -347,12 +396,15 @@ int16_t Microchip_PAC193x::UpdatePowerAccRaw()
 }
 
 
-int16_t Microchip_PAC193x::UpdatePowerAcc(){
+int16_t Microchip_PAC193x::UpdatePowerAcc()
+{
     uint32_t PowerRegScale = 0x10000000;
     double   PowerFSR = (3.2 * 1000000) / rsense;
 
     errorCode = 0;
     UpdatePowerAccRaw();
+
+    PowerAccAll = (double)PowerAccAllRaw; // * PowerFSR / PowerRegScale;
     
     for(int i = 0; i < 4; i++)
     {    

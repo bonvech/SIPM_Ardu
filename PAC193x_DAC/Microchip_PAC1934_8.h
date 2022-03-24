@@ -52,23 +52,23 @@
 //#define I2C_ADDRESS 0x10
 #define CHANNEL 2
 
-// PAC193x register addresses
+// --- PAC193x register addresses
 
 #define PAC1934_REFRESH_CMD_ADDR            0x00
 #define PAC1934_CTRL_ADDR                   0x01
 #define PAC1934_ACC_COUNT_ADDR              0x02
 #define PAC1934_VPOWER1_ACC_ADDR            0x03
-#define PAC1934_VPOWER2_ACC_ADDR            0x04
-#define PAC1934_VPOWER3_ACC_ADDR            0X05
-#define PAC1934_VPOWER4_ACC_ADDR            0X06
+//#define PAC1934_VPOWER2_ACC_ADDR            0x04
+//#define PAC1934_VPOWER3_ACC_ADDR            0X05
+//#define PAC1934_VPOWER4_ACC_ADDR            0X06
 #define PAC1934_VBUS1_ADDR                  0x07
-#define PAC1934_VBUS2_ADDR                  0x08
-#define PAC1934_VBUS3_ADDR                  0x09
-#define PAC1934_VBUS4_ADDR                  0x0A
+//#define PAC1934_VBUS2_ADDR                  0x08
+//#define PAC1934_VBUS3_ADDR                  0x09
+//#define PAC1934_VBUS4_ADDR                  0x0A
 #define PAC1934_VSENSE1_ADDR                0x0B
-#define PAC1934_VSENSE2_ADDR                0x0C
-#define PAC1934_VSENSE3_ADDR                0X0D
-#define PAC1934_VSENSE4_ADDR                0X0E
+//#define PAC1934_VSENSE2_ADDR                0x0C
+//#define PAC1934_VSENSE3_ADDR                0X0D
+//#define PAC1934_VSENSE4_ADDR                0X0E
 #define PAC1934_VBUS1_AVG_ADDR              0X0F
 #define PAC1934_VBUS2_AVG_ADDR              0X10
 #define PAC1934_VBUS3_AVG_ADDR              0X11
@@ -78,9 +78,9 @@
 #define PAC1934_VSENSE3_AVG_ADDR            0X15
 #define PAC1934_VSENSE4_AVG_ADDR            0X16
 #define PAC1934_VPOWER1_ADDR                0X17
-#define PAC1934_VPOWER2_ADDR                0X18
-#define PAC1934_VPOWER3_ADDR                0X19
-#define PAC1934_VPOWER4_ADDR                0X1A
+//#define PAC1934_VPOWER2_ADDR                0X18
+//#define PAC1934_VPOWER3_ADDR                0X19
+//#define PAC1934_VPOWER4_ADDR                0X1A
 #define PAC1934_CHANNEL_DIS_ADDR            0X1C
 #define PAC1934_NEG_PWR_ADDR                0X1D
 #define PAC1934_REFRESH_G_CMD_ADDR          0x1E
@@ -110,6 +110,7 @@ class Microchip_PAC193x {
 
     //class public functions:
     void begin();
+    void SetAddress(uint8_t Addr);
 
     /*
     Function
@@ -129,6 +130,7 @@ class Microchip_PAC193x {
         None.
     */
         void Refresh();
+        void RefreshG();
 
 
     /*
@@ -478,6 +480,8 @@ class Microchip_PAC193x {
     
     uint64_t PowerAccRaw[4];
     double   PowerAcc[4];
+    uint32_t PowerAccAllRaw;
+    double   PowerAccAll;
     
     float    Energy[4];
     
@@ -493,12 +497,13 @@ class Microchip_PAC193x {
 
   private:
     //class private functions:
-    void Read(uint8_t reg_address, int Nbytes, uint8_t *pBuffer);
-    uint8_t Read8(uint8_t reg_address);
+    void     Read(  uint8_t reg_address, int Nbytes, uint8_t *pBuffer);
+    uint8_t  Read8( uint8_t reg_address);
     uint16_t Read16(uint8_t reg_address);
+    uint32_t Read24(uint8_t reg_address); 
     uint32_t Read32(uint8_t reg_address);
     uint64_t Read64(uint8_t reg_address);
-    void Write8(uint8_t reg_address, uint8_t data);
+    void     Write8(uint8_t reg_address, uint8_t data);
 
     //class private properties:
     uint32_t rsense;
@@ -510,7 +515,7 @@ class Microchip_PAC193x {
         the value of errorCode indicates wich type of error has occured.
         Possible values:     0 - No error
                             -1 - Read from device i2C communication error
-                            -2 - Write to device i2C communication error
+                            -2 - Write to  device i2C communication error
                             -3 - rsense resitor value choice error (0 or negative value)
                             -4 - Sample Rate choice error (only the following values are possible: 8, 64, 256, 1024)
     */
